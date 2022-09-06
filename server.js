@@ -1,88 +1,47 @@
 import { ApolloServer, gql } from "apollo-server";
 
-const tweets = [
-    {
-        id: "1",
-        text: "first!",
-    },
-    { id: "2", text: "Second!" },
-];
-
-const users = [
-    {
-        id: "1",
-        firstName: "Hosung",
-        lastName: "Cho",
-    },
-    {
-        id: "2",
-        firstName: "Hanuel",
-        lastName: "Kim",
-    },
-];
-
 const resolvers = {
     Query: {
-        allTweets() {
-            return tweets;
+        allMovies() {
+            return fetch("https://yts.mx/api/v2/list_movies.json") //
+                .then((res) => res.json())
+                .then((json) => json.data.movies);
         },
-        tweet(root, { id }) {
-            console.log(root);
-            return tweets.find((tweet) => tweet.id === id);
-        },
-        allUsers() {
-            return users;
-        },
-    },
-    Mutation: {
-        postTweet(root, { text, userId }) {
-            const newTweet = {
-                id: tweets.length + 1,
-                text,
-            };
-            tweets.push(newTweet);
-            return newTweet;
-        },
-        deleteTweet(root, { id }) {
-            if (tweets.find((tweet) => tweet.id === id)) {
-                const targetIndex = tweets.findIndex((tweet) => tweet.id === id);
-                tweets.splice(targetIndex, 1);
-                return true;
-            } else {
-                return false;
-            }
-        },
-    },
-    User: {
-        fullName({ firstName, lastName }) {
-            console.log(firstName, lastName);
-            return `${firstName}${lastName}`;
+        movie(root, { id }) {
+            return fetch(`https://yts.mx/api/v2/movie_details.json?movie_id=${id}`) //
+                .then((res) => res.json())
+                .then((json) => json.data.movie);
         },
     },
 };
 
 const typeDefs = gql`
-    type User {
-        id: ID!
-        fullName: String
-        firstName: String
-        lastName: String
-    }
-    type Tweet {
-        id: ID!
-        text: String!
-        author: User
+    type Movie {
+        id: Int!
+        url: String!
+        imdb_code: String!
+        title: String!
+        title_english: String!
+        title_long: String!
+        slug: String!
+        year: Int!
+        rating: Float!
+        runtime: Float!
+        genres: [String]!
+        summary: String
+        description_full: String!
+        synopsis: String
+        yt_trailer_code: String!
+        language: String!
+        background_image: String!
+        background_image_original: String!
+        small_cover_image: String!
+        medium_cover_image: String!
+        large_cover_image: String!
     }
     type Query {
-        allUsers: [User!]!
-        allTweets: [Tweet!]!
-        tweet(id: ID!): Tweet
-        ping: String!
-        pong: String!
-    }
-    type Mutation {
-        postTweet(text: String!, userId: ID!): Tweet!
-        deleteTweet(id: ID!): Boolean!
+        allMovies: [Movie!]!
+        movie(id: String!): Movie
     }
 `;
 
